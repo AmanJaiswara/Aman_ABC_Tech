@@ -7,7 +7,7 @@ pipeline
 		{
 			steps
 			{
-				git 'https://github.com/AmanJaiswara/Aman_ABC_Tech.git'
+				git "https://github.com/AmanJaiswara/Aman_ABC_Tech.git"
 			}
 		}
 		
