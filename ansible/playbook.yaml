@@ -1,0 +1,51 @@
+---
+- name: Build and deploy Java Tomcat app on Minikube
+  hosts: localhost
+  vars:
+    project_path: "{{ lookup('env', 'WORKSPACE') | default('../', true) }}"
+    image_name: aman8997abc/my-app
+    image_tag: latest
+    deployment_name: depl-myapp
+    service_name: myapp-svc
+    namespace: default
+
+  tasks:
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "{{ project_path }}"
+
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+       username: "{{ aman8997abc }}"
+       password: "{{ Aman8997$ }}"
+
+    - name: Push Docker image to Docker Hub
+      community.docker.docker_image:
+       name: "{{ image_name }}"
+       tag: "{{ image_tag }}"
+       source: local
+       push: true 
+
+    - name: Delete existing Kubernetes deployment (if any)
+      shell: |
+       kubectl delete deployment {{ deployment_name }} --namespace {{ namespace }} --ignore-not-found
+      args:
+       executable: /bin/bash
+
+    - name: Delete existing Kubernetes service (if any)
+      shell: |
+       kubectl delete service {{ service_name }} --namespace {{ namespace }} --ignore-not-found
+      args:
+       executable: /bin/bash
+
+    - name: Apply new Kubernetes deployment and service
+      shell: |
+        kubectl apply -f {{ project_path }}/k8s/deployment.yaml
+      args:
+        executable: /bin/bash
+      environment:
+       KUBECONFIG: /var/lib/jenkins/.kube/config
