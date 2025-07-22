@@ -20,9 +20,10 @@
 
     - name: Log in to Docker Hub
       community.docker.docker_login:
-       username: "{{ aman8997abc }}"
-       password: "{{ Aman8997$ }}"
-
+       username: "{{ dockerhub_username }}"
+       password: "{{ dockerhub_password }}"
+       registry: docker.io
+       
     - name: Push Docker image to Docker Hub
       community.docker.docker_image:
        name: "{{ image_name }}"
