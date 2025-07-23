@@ -64,13 +64,12 @@
         executable: /bin/bash
       # Removed KUBECONFIG line - crucial!
 
-    - name: Apply new Kubernetes deployment and service
-      # Assuming your k8s YAMLs are in a subfolder named 'k8s' directly under project_root_path
-      shell: |
-        kubectl apply -f {{ project_root_path }}/k8s/deployment.yaml
-        kubectl apply -f {{ project_root_path }}/k8s/service.yaml
-      args:
-        executable: /bin/bash
+    - - name: Apply new Kubernetes deployment and service
+      shell: |
+        kubectl apply -f {{ project_root_path }}/k8s/deployment.yaml
+        kubectl apply -f {{ project_root_path }}/k8s/service.yaml
+      args:
+        executable: /bin/bash
       # Removed KUBECONFIG line - CRITICAL!
 
     - name: Wait for deployment rollout to complete
