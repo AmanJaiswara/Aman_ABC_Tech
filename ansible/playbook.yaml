@@ -64,10 +64,9 @@
         executable: /bin/bash
       # Removed KUBECONFIG line - crucial!
 
-    - - name: Apply new Kubernetes deployment and service
+    - name: Apply new Kubernetes deployment and service
       shell: |
-        kubectl apply -f {{ project_root_path }}/k8s/deployment.yaml
-        kubectl apply -f {{ project_root_path }}/k8s/service.yaml
+        kubectl apply -f {{ project_path }}/k8s/deployment.yaml
       args:
         executable: /bin/bash
       # Removed KUBECONFIG line - CRITICAL!
