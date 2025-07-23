@@ -8,7 +8,7 @@
     project_root_path: "{{ lookup('env', 'WORKSPACE') | default(ansible_facts.env.PWD, true) }}" # More robust way to get project root
     image_name: aman8997abc/my-tomcat-app # Your Docker Hub username/repo name
     image_tag: 1.0                       # Tag matching your manual build
-
+    
     # --- Kubernetes application variables (make consistent with your .yaml files) ---
     k8s_app_name: aman-abc-tech          # Label/selector used in K8s YAMLs
     deployment_name: aman-abc-tech-deployment # Name of the K8s Deployment
@@ -96,7 +96,7 @@
       register: uri_result
       changed_when: false
       failed_when: uri_result.status not in [200, 301, 302]
-
+      
     - debug:
         msg: "Application verification successful!"
       when: uri_result.status in [200, 301, 302]
