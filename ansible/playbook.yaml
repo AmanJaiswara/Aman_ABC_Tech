@@ -2,11 +2,11 @@
 - name: Build and deploy Java Tomcat app on Minikube
   hosts: localhost
   vars:
-    project_path: "{{ lookup('env', 'WORKSPACE') | default('../', true) }}"
+    project_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
     image_name: aman8997abc/my-app
-    image_tag: latest
-    deployment_name: depl-myapp
-    service_name: myapp-svc
+    image_tag: 1.0
+    deployment_name: aman-abc-tech-deployment
+    service_name: aman-abc-tech-service
     namespace: default
 
   tasks:
@@ -20,8 +20,8 @@
 
     - name: Log in to Docker Hub
       community.docker.docker_login:
-       username: "{{ dockerhub_username }}"
-       password: "{{ dockerhub_password }}"
+       username: "{{ aman8997abc }}"
+       password: "{{ Aman8997$ }}"
        registry: docker.io
        
     - name: Push Docker image to Docker Hub
