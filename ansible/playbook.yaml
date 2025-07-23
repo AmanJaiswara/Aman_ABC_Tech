@@ -5,7 +5,7 @@
 
   vars:
     # --- Project/Image variables ---
-    project_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}" # Use '.' for current dir if running manually
+    project_root_path: "{{ lookup('env', 'WORKSPACE') | default(ansible_facts.env.PWD, true) }}" # More robust way to get project root
     image_name: aman8997abc/my-tomcat-app # Your Docker Hub username/repo name
     image_tag: 1.0                       # Tag matching your manual build
     
@@ -23,18 +23,13 @@
     dockerhub_password: "{{ lookup('env', 'DOCKERHUB_PASSWORD') | default(omit) }}"
 
   tasks:
-    - name: Ensure project_path is correct for manual runs if WORKSPACE is not set
-      set_fact:
-        project_path: "{{ ansible_facts.env.PWD }}"
-      when: lookup('env', 'WORKSPACE') == None
-
     - name: Build Docker image
       community.docker.docker_image:
         name: "{{ image_name }}"
         tag: "{{ image_tag }}"
         source: build
         build:
-          path: "{{ project_path }}" # Build context is the project root where Dockerfile and target/ are
+          path: "{{ project_root_path }}" # Build context is the project root where Dockerfile and target/ are
           args:
             WAR_FILE_NAME: "ABCtechnologies-1.0.war" # Pass the WAR file name as a build argument
       register: docker_build_result
@@ -58,62 +53,35 @@
       when: dockerhub_username is defined and dockerhub_password is defined # Only push if credentials are provided
 
     - name: Delete existing Kubernetes deployment (if any)
-      kubernetes.core.k8s:
-        state: absent
-        api_version: apps/v1
-        kind: Deployment
-        name: "{{ deployment_name }}"
-        namespace: "{{ namespace }}"
-      ignore_errors: true # Ignore if not found
+      shell: "kubectl delete deployment {{ deployment_name }} --namespace {{ namespace }} --ignore-not-found"
+      args:
+        executable: /bin/bash
+      # Removed KUBECONFIG line - crucial!
 
     - name: Delete existing Kubernetes service (if any)
-      kubernetes.core.k8s:
-        state: absent
-        api_version: v1
-        kind: Service
-        name: "{{ service_name }}"
-        namespace: "{{ namespace }}"
-      ignore_errors: true # Ignore if not found
+      shell: "kubectl delete service {{ service_name }} --namespace {{ namespace }} --ignore-not-found"
+      args:
+        executable: /bin/bash
+      # Removed KUBECONFIG line - crucial!
 
-    - name: Apply new Kubernetes deployment
-      ansible.builtin.template:
-        src: deployment.yaml.j2 # This assumes you have ansible/templates/deployment.yaml.j2
-        dest: /tmp/deployment.yaml
-      when: true
-
-    - name: Create Kubernetes Deployment
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '/tmp/deployment.yaml') }}"
-        namespace: "{{ namespace }}"
-
-    - name: Apply new Kubernetes service
-      ansible.builtin.template:
-        src: service.yaml.j2 # This assumes you have ansible/templates/service.yaml.j2
-        dest: /tmp/service.yaml
-      when: true
-
-    - name: Create Kubernetes Service
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '/tmp/service.yaml') }}"
-        namespace: "{{ namespace }}"
+    - name: Apply new Kubernetes deployment and service
+      # Assuming your k8s YAMLs are in a subfolder named 'k8s' directly under project_root_path
+      shell: |
+        kubectl apply -f {{ project_root_path }}/k8s/deployment.yaml
+        kubectl apply -f {{ project_root_path }}/k8s/service.yaml
+      args:
+        executable: /bin/bash
+      # Removed KUBECONFIG line - CRITICAL!
 
     - name: Wait for deployment rollout to complete
-      kubernetes.core.k8s_info:
-        api_version: apps/v1
-        kind: Deployment
-        name: "{{ deployment_name }}"
-        namespace: "{{ namespace }}"
-        wait: true
-        wait_condition:
-          type: Available
-          status: "True"
-        wait_timeout: 300 # Wait up to 5 minutes
+      shell: "kubectl rollout status deployment/{{ deployment_name }} --timeout=300s --namespace {{ namespace }}"
+      args:
+        executable: /bin/bash
 
     - name: Get Minikube service URL
       shell: "minikube service {{ service_name }} --url --namespace {{ namespace }}"
       register: minikube_service_url
+      # Removed KUBECONFIG line - crucial!
 
     - name: Display Minikube service URL
       debug:
