@@ -42,10 +42,10 @@
       args:
        executable: /bin/bash
 
-    - name: Apply new Kubernetes deployment and service
-      shell: |
-        kubectl apply -f {{ project_path }}/k8s/deployment.yaml
-      args:
-        executable: /bin/bash
-      environment:
-       KUBECONFIG: /var/lib/jenkins/.kube/config
+    - - name: Apply new Kubernetes deployment and service
+      shell: |
+        kubectl apply -f {{ project_path }}/k8s/deployment.yaml
+      args:
+        executable: /bin/bash
+      environment:
+       KUBECONFIG: /var/lib/jenkins/.kube/config
