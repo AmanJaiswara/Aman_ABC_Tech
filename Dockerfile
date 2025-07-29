@@ -5,7 +5,7 @@ FROM tomcat:9.0-jdk21-temurin
 ARG WAR_FILE_NAME
 
 # 2. Copy the war file using the argument, and rename it to ROOT.war for base URL access.
-COPY ${WAR_FILE_NAME} /usr/local/tomcat/webapps/ROOT.war
+COPY ${WAR_FILE_NAME} /usr/local/tomcat/webapps/app.war
 
 # Exposing the 8080 port
 EXPOSE 8080
